@@ -7,7 +7,7 @@ Renovated in 2021, Oakfield House includes three bathrooms, generous reception s
 The guide price is seven hundred and twenty-five thousand pounds. To experience the home for yourself, choose a convenient appointment and book your viewing directly with the owners.`;
 
 export async function GET() {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPEN_AI_KEY ?? process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return Response.json({ error: "Narration is not configured." }, { status: 503 });
   }

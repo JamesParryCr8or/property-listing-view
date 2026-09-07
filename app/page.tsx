@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
@@ -31,8 +31,20 @@ export default function HomePage() {
   const [radius, setRadius] = useState("500m");
   const [studioStep, setStudioStep] = useState(2);
   const [audioState, setAudioState] = useState<"idle" | "loading" | "playing" | "paused" | "error">("idle");
+  const [mapsApiKey, setMapsApiKey] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const homes = useMemo(() => soldHomes.filter((home) => home.year <= year), [year]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch("/api/maps-config", { signal: controller.signal })
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then((config: { apiKey?: string }) => setMapsApiKey(config.apiKey ?? null))
+      .catch(() => setMapsApiKey(null));
+
+    return () => controller.abort();
+  }, []);
 
   function share() {
     setCopied(true);
@@ -120,7 +132,7 @@ export default function HomePage() {
                 <section className="story-section"><p className="eyebrow">The home</p><h2>Thoughtful family living, inside and out.</h2><p>Set along one of Wilmslow’s leafy residential roads, Oakfield House pairs beautifully proportioned rooms with a relaxed, modern finish. The open-plan kitchen is the heart of the home, opening directly onto a south-west facing garden.</p><div className="feature-grid"><span><Trees/>South-west garden</span><span><TrainFront/>12 min walk to station</span><span><Sparkles/>Renovated in 2021</span><span><House/>Freehold</span></div></section>
                 <section className="tour-card"><div className="tour-visual"><img src="/listwise-home.png" alt="3D tour preview"/><button><Play fill="currentColor"/></button></div><div><p className="eyebrow">Immersive tour</p><h2>Walk through at your own pace.</h2><p>Explore every room, understand the flow and look out into the garden.</p><Button>Start 3D tour <ChevronRight/></Button></div></section>
                 <section className="market-section"><p className="eyebrow">Local market lens</p><div className="section-heading"><div><h2>What homes nearby actually sold for</h2><p>Verified sales within {radius} · showing up to {year}</p></div><div className="radius-switch">{["200m","500m","1 mile"].map(r => <button key={r} onClick={()=>setRadius(r)} className={radius===r?"active":""}>{r}</button>)}</div></div>
-                  <div className="map-card"><div className="map-grid"/><div className="road road-a"/><div className="road road-b"/><div className="road road-c"/><div className="subject-pin"><House/><span>Oakfield House</span></div>{homes.map(home => <button key={home.label} className="price-pin" style={{left:`${home.x}%`,top:`${home.y}%`}} title={`${home.label}, sold ${home.year}`}>£{home.price}k<small>{home.year}</small></button>)}<div className="map-key">HM Land Registry data · Demo</div></div>
+                  <div className="map-card">{mapsApiKey ? <iframe className="google-map" title="Map around Oakfield House" src={`https://www.google.com/maps/embed/v1/place?key=${encodeURIComponent(mapsApiKey)}&q=Wilmslow%2C+Cheshire&zoom=15&maptype=roadmap`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen/> : <><div className="map-grid"/><div className="road road-a"/><div className="road road-b"/><div className="road road-c"/></>}<div className="subject-pin"><House/><span>Oakfield House</span></div>{homes.map(home => <button key={home.label} className="price-pin" style={{left:`${home.x}%`,top:`${home.y}%`}} title={`${home.label}, sold ${home.year}`}>£{home.price}k<small>{home.year}</small></button>)}<div className="map-key">{mapsApiKey ? "Google Maps · HM Land Registry data" : "HM Land Registry data · Demo"}</div></div>
                   <div className="timeline"><span>1995</span><Slider value={[year]} min={1995} max={2026} step={1} onValueChange={v=>setYear(v[0])}/><b>{year}</b></div>
                 </section>
                 <section className="location-section"><p className="eyebrow">Around the home</p><h2>A quiet address, close to everything.</h2><div className="location-cards"><article><b>Wilmslow station</b><span>12 min walk</span></article><article><b>The Carrs Park</b><span>8 min walk</span></article><article><b>Ofsted-rated schools</b><span>3 within 1 mile</span></article></div></section>
