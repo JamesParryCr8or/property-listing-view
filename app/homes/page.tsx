@@ -1,5 +1,7 @@
 "use client";
 
+import "./controls.css";
+
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Bath, BedDouble, ChevronDown, Heart, Home, MapPin, Search, SlidersHorizontal } from "lucide-react";
