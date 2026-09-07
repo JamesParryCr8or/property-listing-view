@@ -86,7 +86,7 @@ export default function HomePage() {
         <a className="brand" href="#"><span className="brand-mark">L</span>listwise<span className="brand-dot">.</span></a>
         <Tabs value={view} onValueChange={setView} className="view-tabs">
           <TabsList><TabsTrigger value="studio">Seller studio</TabsTrigger><TabsTrigger value="pack">Property pack</TabsTrigger><TabsTrigger value="listing">Live listing</TabsTrigger></TabsList>
-          <div className="header-actions"><Link className="quiet-button" href="/apply">Applications</Link><button className="avatar">JP</button></div>
+          <div className="header-actions"><Link className="quiet-button" href="/homes">Find a home</Link><Link className="quiet-button" href="/apply">Applications</Link><button className="avatar">JP</button></div>
 
           <TabsContent value="studio" className="page-content studio-wrap">
             <section className="studio-head">
