@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ensureApplicationSchema } from "@/lib/database";
+import { databaseConnectionString, ensureApplicationSchema } from "@/lib/database";
 
 const documentSchema = z.object({
   kind: z.string().min(1).max(80),
@@ -21,11 +21,15 @@ const applicationSchema = z.object({
 });
 
 export async function GET() {
+  if (!databaseConnectionString()) {
+    return Response.json({ connected: false, reason: "missing_connection_binding" }, { status: 503 });
+  }
+
   try {
     await ensureApplicationSchema();
     return Response.json({ connected: true });
   } catch {
-    return Response.json({ connected: false }, { status: 503 });
+    return Response.json({ connected: false, reason: "connection_failed" }, { status: 503 });
   }
 }
 

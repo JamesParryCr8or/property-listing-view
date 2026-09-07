@@ -6,9 +6,16 @@ export type ApplicationDocument = {
   size: number;
 };
 
+export function databaseConnectionString() {
+  return process.env.DATABASE_URL
+    ?? process.env.POSTGRES_URL
+    ?? process.env.NEON_DATABASE_URL
+    ?? process.env.DATABASE_URL_UNPOOLED;
+}
+
 export function database() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) throw new Error("DATABASE_URL is not configured");
+  const connectionString = databaseConnectionString();
+  if (!connectionString) throw new Error("Database connection is not configured");
   return neon(connectionString);
 }
 
