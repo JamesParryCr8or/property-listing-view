@@ -15,17 +15,30 @@ export type NearbySale = {
 
 let mapsLoader: Promise<void> | null = null;
 
+type MapsWindow = Window & {
+  google?: typeof google;
+  __listwiseMapsReady?: () => void;
+};
+
 function loadMaps(apiKey: string) {
-  const loadedGoogle = (window as unknown as { google?: typeof google }).google;
+  const mapsWindow = window as MapsWindow;
+  const loadedGoogle = mapsWindow.google;
   if (loadedGoogle?.maps) return Promise.resolve();
   if (mapsLoader) return mapsLoader;
 
   mapsLoader = new Promise<void>((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly&loading=async&libraries=marker`;
+    mapsWindow.__listwiseMapsReady = () => {
+      delete mapsWindow.__listwiseMapsReady;
+      resolve();
+    };
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(apiKey)}&v=weekly&loading=async&libraries=marker&callback=__listwiseMapsReady`;
     script.async = true;
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Google Maps failed to load"));
+    script.onerror = () => {
+      delete mapsWindow.__listwiseMapsReady;
+      mapsLoader = null;
+      reject(new Error("Google Maps failed to load"));
+    };
     document.head.appendChild(script);
   });
 
@@ -62,8 +75,10 @@ export function NearbySalesMap({ sales }: { sales: NearbySale[] }) {
         await loadMaps(apiKey);
         if (cancelled || !mapNode.current) return;
 
-        const { Map } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
-        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
+        const mapsApi = (window as MapsWindow).google?.maps;
+        if (!mapsApi) throw new Error("Google Maps did not initialise");
+        const { Map } = await mapsApi.importLibrary("maps") as google.maps.MapsLibrary;
+        const { AdvancedMarkerElement } = await mapsApi.importLibrary("marker") as google.maps.MarkerLibrary;
         const map = new Map(mapNode.current, {
           center: { lat: 53.3279, lng: -2.2353 },
           zoom: 15,
