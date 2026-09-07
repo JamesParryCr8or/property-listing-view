@@ -58,7 +58,7 @@ function markerContent(sale: NearbySale) {
   return element;
 }
 
-export function NearbySalesMap({ sales }: { sales: NearbySale[] }) {
+export function NearbySalesMap({ sales, center = { lat: 53.3279, lng: -2.2353 }, homeLabel = "Oakfield House" }: { sales: NearbySale[]; center?: { lat:number; lng:number }; homeLabel?: string }) {
   const mapNode = useRef<HTMLDivElement | null>(null);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [selected, setSelected] = useState<NearbySale | null>(sales[0] ?? null);
@@ -80,7 +80,7 @@ export function NearbySalesMap({ sales }: { sales: NearbySale[] }) {
         const { Map } = await mapsApi.importLibrary("maps") as google.maps.MapsLibrary;
         const { AdvancedMarkerElement } = await mapsApi.importLibrary("marker") as google.maps.MarkerLibrary;
         const map = new Map(mapNode.current, {
-          center: { lat: 53.3279, lng: -2.2353 },
+          center,
           zoom: 15,
           mapId: "DEMO_MAP_ID",
           mapTypeControl: false,
@@ -91,13 +91,13 @@ export function NearbySalesMap({ sales }: { sales: NearbySale[] }) {
 
         const homeMarker = document.createElement("div");
         homeMarker.className = "map-home-marker";
-        const homeLabel = document.createElement("span");
-        homeLabel.textContent = "Oakfield House";
-        homeMarker.append(homeLabel);
+        const homeLabelElement = document.createElement("span");
+        homeLabelElement.textContent = homeLabel;
+        homeMarker.append(homeLabelElement);
         markers.push(new AdvancedMarkerElement({
           map,
-          position: { lat: 53.3279, lng: -2.2353 },
-          title: "Oakfield House",
+          position: center,
+          title: homeLabel,
           content: homeMarker,
           zIndex: 10,
         }));
@@ -124,7 +124,7 @@ export function NearbySalesMap({ sales }: { sales: NearbySale[] }) {
       cancelled = true;
       markers.forEach((marker) => { marker.map = null; });
     };
-  }, [sales]);
+  }, [sales, center.lat, center.lng, homeLabel]);
 
   useEffect(() => {
     if (selected && !sales.some((sale) => sale.id === selected.id)) {
