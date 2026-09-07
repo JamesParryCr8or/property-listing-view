@@ -1,0 +1,3 @@
+.viewing-button,
+.tour-card > div:last-child button { color: #fff !important; }
+.direct-viewing { display:flex;align-items:center;justify-content:center;text-decoration:none; }

@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { databaseConnectionString, ensureApplicationSchema } from "@/lib/database";
+import { currentUser } from "@/lib/auth";
+import { databaseConnectionString, ensureApplicationSchema, ensurePortalSchema } from "@/lib/database";
 
 const documentSchema = z.object({
   kind: z.string().min(1).max(80),
@@ -40,7 +41,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const sql = await ensureApplicationSchema();
+    const user = await currentUser();
+    const sql = await ensurePortalSchema();
     const id = crypto.randomUUID();
     const reference = `LW-${id.slice(0, 8).toUpperCase()}`;
     const value = result.data;
@@ -56,6 +58,10 @@ export async function POST(request: Request) {
       )
       RETURNING application_reference, status, created_at
     `;
+    if (user) {
+      await sql`UPDATE viewing_applications SET user_id=${String(user.id)} WHERE id=${id}`;
+      await sql`UPDATE app_users SET name=${value.applicantName},phone=${value.phone},buying_position=${value.buyingPosition},deposit_status=${value.depositStatus},mortgage_status=${value.mortgageStatus},updated_at=now() WHERE id=${String(user.id)}`;
+    }
     return Response.json({ application: rows[0] }, { status: 201 });
   } catch {
     return Response.json({ error: "The application could not be saved." }, { status: 503 });

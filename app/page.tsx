@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { NearbySalesMap } from "@/components/nearby-sales-map";
+import { SalesTimeline } from "@/components/sales-timeline";
 import { Bath, BedDouble, Camera, Check, ChevronRight, CircleCheck, Download, Expand, ExternalLink, FileCheck2, FileText, Heart, House, LayoutPanelTop, LoaderCircle, Pause, Play, ScanLine, Share2, ShieldCheck, Sparkles, TrainFront, Trees, Upload, Volume2, WandSparkles } from "lucide-react";
 
 const soldHomes = [
@@ -86,7 +87,7 @@ export default function HomePage() {
         <a className="brand" href="#"><span className="brand-mark">L</span>listwise<span className="brand-dot">.</span></a>
         <Tabs value={view} onValueChange={setView} className="view-tabs">
           <TabsList><TabsTrigger value="studio">Seller studio</TabsTrigger><TabsTrigger value="pack">Property pack</TabsTrigger><TabsTrigger value="listing">Live listing</TabsTrigger></TabsList>
-          <div className="header-actions"><Link className="quiet-button" href="/homes">Find a home</Link><Link className="quiet-button" href="/apply">Applications</Link><button className="avatar">JP</button></div>
+          <div className="header-actions"><Link className="quiet-button" href="/homes">Find a home</Link><Link className="quiet-button" href="/portal">My workspace</Link><Link className="avatar" href="/account" aria-label="Open account">JP</Link></div>
 
           <TabsContent value="studio" className="page-content studio-wrap">
             <section className="studio-head">
@@ -143,14 +144,15 @@ export default function HomePage() {
                 <section className="owner-note"><div className="quote-mark">“</div><div><p className="eyebrow">In the owners’ words</p><blockquote>The kitchen at sunset is what we’ll miss most. In summer, the doors stay open and the whole ground floor becomes part of the garden.</blockquote><p>— James & Alex, owners since 2018</p></div></section>
                 <section className="story-section"><p className="eyebrow">The home</p><h2>Thoughtful family living, inside and out.</h2><p>Set along one of Wilmslow’s leafy residential roads, Oakfield House pairs beautifully proportioned rooms with a relaxed, modern finish. The open-plan kitchen is the heart of the home, opening directly onto a south-west facing garden.</p><div className="feature-grid"><span><Trees/>South-west garden</span><span><TrainFront/>12 min walk to station</span><span><Sparkles/>Renovated in 2021</span><span><House/>Freehold</span></div></section>
                 <section className="tour-card"><div className="tour-visual"><img src="/listwise-home.png" alt="3D tour preview"/><button><Play fill="currentColor"/></button></div><div><p className="eyebrow">Immersive tour</p><h2>Walk through at your own pace.</h2><p>Explore every room, understand the flow and look out into the garden.</p><Button>Start 3D tour <ChevronRight/></Button></div></section>
-                <section className="market-section"><p className="eyebrow">Local market lens</p><div className="section-heading"><div><h2>What homes nearby actually sold for</h2><p>Verified sales within {radius} · showing up to {year}</p></div><div className="radius-switch">{["200m","500m","1 mile"].map(r => <button key={r} onClick={()=>setRadius(r)} className={radius===r?"active":""}>{r}</button>)}</div></div>
+                <section className="market-section"><p className="eyebrow">Local market lens</p><div className="section-heading"><div><h2>Explore the nearby market</h2><p>Interactive Google map · illustrative pins within {radius}</p></div><div className="radius-switch">{["200m","500m","1 mile"].map(r => <button key={r} onClick={()=>setRadius(r)} className={radius===r?"active":""}>{r}</button>)}</div></div>
                   <NearbySalesMap sales={homes}/>
                   <div className="timeline"><span>1995</span><Slider value={[year]} min={1995} max={2026} step={1} onValueChange={v=>setYear(v[0])}/><b>{year}</b></div>
                 </section>
                 <section className="location-section"><p className="eyebrow">Around the home</p><h2>A quiet address, close to everything.</h2><div className="location-cards"><article><b>Wilmslow station</b><span>12 min walk</span></article><article><b>The Carrs Park</b><span>8 min walk</span></article><article><b>Ofsted-rated schools</b><span>3 within 1 mile</span></article></div></section>
               </section>
-              <aside className="enquiry-card"><p>Guide price</p><h2>£725,000</h2><div className="activity"><span/><p><b>Popular this week</b>14 viewing requests</p></div><Dialog><DialogTrigger asChild><Button className="viewing-button">Book a viewing</Button></DialogTrigger><DialogContent><DialogHeader><DialogTitle>Choose your viewing</DialogTitle><DialogDescription>Meet the owners at Oakfield House. Select a convenient time, then share your buying position and document readiness.</DialogDescription></DialogHeader><div className="dates">{["Tue 9 Sep · 5:30 pm","Thu 11 Sep · 6:00 pm","Sat 13 Sep · 10:30 am"].map(d=><Link key={d} href={`/apply?slot=${encodeURIComponent(d)}`}>{d}<ChevronRight/></Link>)}</div></DialogContent></Dialog><button onClick={share} className="share-button"><Share2/>{copied?"Link copied":"Share this home"}</button><button className="brochure-button"><Download/>Download brochure</button><p className="host-note"><span className="host-avatar">JA</span><span><b>Hosted by the owners</b>Get honest answers from the people who know it best.</span></p></aside>
+              <aside className="enquiry-card"><p>Guide price</p><h2>£725,000</h2><div className="activity"><span/><p><b>Popular this week</b>14 viewing requests</p></div><Link className="viewing-button direct-viewing" href="/apply?property=oakfield-house-wilmslow">Request a viewing</Link><button onClick={share} className="share-button"><Share2/>{copied?"Link copied":"Share this home"}</button><button className="brochure-button"><Download/>Download brochure</button><p className="host-note"><span className="host-avatar">JA</span><span><b>Hosted by the owners</b>Get honest answers from the people who know it best.</span></p></aside>
             </div>
+            <SalesTimeline postcode="SK9 1NY"/>
             <footer><a className="brand" href="#"><span className="brand-mark">L</span>listwise<span className="brand-dot">.</span></a><p>A better way to list your home.</p><span>Property particulars are illustrative for this prototype.</span></footer>
           </TabsContent>
         </Tabs>

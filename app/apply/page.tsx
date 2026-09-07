@@ -14,16 +14,22 @@ const requestedDocuments = [
 
 type UploadedFiles = Record<string, File>;
 type SavedApplication = { application_reference: string; status: string; created_at: string };
+type Profile = { name:string; email:string; phone:string; buying_position:string; deposit_status:string; mortgage_status:string };
 
 export default function ViewingApplicationPage() {
   const [slot, setSlot] = useState(viewingSlots[0]);
   const [files, setFiles] = useState<UploadedFiles>({});
   const [state, setState] = useState<"idle" | "saving" | "error" | "complete">("idle");
   const [saved, setSaved] = useState<SavedApplication | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [propertySlug, setPropertySlug] = useState("oakfield-house-wilmslow");
 
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get("slot");
+    const requestedProperty = new URLSearchParams(window.location.search).get("property");
     if (requested && viewingSlots.includes(requested)) setSlot(requested);
+    if (requestedProperty) setPropertySlug(requestedProperty);
+    fetch("/api/account").then((response) => response.json()).then((body) => setProfile(body.user ?? null)).catch(() => null);
   }, []);
 
   const readyCount = useMemo(() => requestedDocuments.filter((document) => files[document.kind]).length, [files]);
@@ -43,7 +49,7 @@ export default function ViewingApplicationPage() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        propertySlug: "oakfield-house-wilmslow",
+        propertySlug,
         viewingSlot: slot,
         applicantName: form.get("name"),
         email: form.get("email"),
@@ -67,20 +73,20 @@ export default function ViewingApplicationPage() {
   }
 
   if (state === "complete" && saved) {
-    return <main className="application-page"><header className="application-topbar"><Link className="application-brand" href="/"><span>L</span>listwise.</Link></header><section className="application-success"><span><CheckCircle2 /></span><p className="eyebrow">Application received</p><h1>Your viewing request is ready for review.</h1><p>We’ve saved your buying position and document checklist against Oakfield House. The seller can now confirm the appointment.</p><div><small>Application reference</small><b>{saved.application_reference}</b></div><Link className="primary-link" href="/">Return to Oakfield House</Link></section></main>;
+    return <main className="application-page"><header className="application-topbar"><Link className="application-brand" href="/"><span>L</span>listwise.</Link></header><section className="application-success"><span><CheckCircle2 /></span><p className="eyebrow">Application received</p><h1>Your viewing request is ready for review.</h1><p>We’ve saved your buying position and document checklist. The seller can now confirm the appointment.</p><div><small>Application reference</small><b>{saved.application_reference}</b></div><Link className="primary-link" href={profile?"/portal":"/account"}>{profile?"Open my property workspace":"Create an account to reuse this profile"}</Link></section></main>;
   }
 
   return (
     <main className="application-page">
       <header className="application-topbar"><Link className="application-brand" href="/"><span>L</span>listwise.</Link><Link className="back-to-listing" href="/"><ArrowLeft />Oakfield House</Link></header>
       <div className="application-layout">
-        <form className="application-form" onSubmit={submit}>
+        <form className="application-form" onSubmit={submit} key={profile?.email ?? "guest"}>
           <div className="application-intro"><p className="eyebrow">Book with confidence</p><h1>Request a viewing</h1><p>Tell the owners when you’d like to visit and share the documents that show you’re ready to move.</p></div>
           <ol className="application-steps"><li className="done"><Check />Viewing</li><li className="active">2 Your position</li><li>3 Documents</li><li>4 Review</li></ol>
 
           <section className="form-section"><div className="form-heading"><span>1</span><div><h2>Choose your viewing</h2><p>The owners host each appointment personally.</p></div></div><div className="slot-options">{viewingSlots.map((option) => <label key={option} className={slot === option ? "selected" : ""}><input type="radio" name="slot" value={option} checked={slot === option} onChange={() => setSlot(option)} /><span><b>{option}</b><small>45 minute appointment</small></span><Check /></label>)}</div></section>
 
-          <section className="form-section"><div className="form-heading"><span>2</span><div><h2>Your details and buying position</h2><p>This helps the seller prepare for a useful conversation.</p></div></div><div className="field-grid"><label>Full name<input name="name" autoComplete="name" required /></label><label>Email address<input name="email" type="email" autoComplete="email" required /></label><label>Phone number<input name="phone" type="tel" autoComplete="tel" required /></label><label>Buying position<select name="buyingPosition" required defaultValue=""><option value="" disabled>Select your position</option><option>First-time buyer</option><option>Property under offer</option><option>Property on the market</option><option>Not yet on the market</option><option>Cash buyer</option></select></label><label>Deposit<select name="depositStatus" required defaultValue=""><option value="" disabled>Select deposit status</option><option>Funds available</option><option>Gifted deposit confirmed</option><option>Still building deposit</option></select></label><label>Mortgage<select name="mortgageStatus" required defaultValue=""><option value="" disabled>Select mortgage status</option><option>Agreement in principle</option><option>Cash purchase</option><option>Speaking to a broker</option><option>Not arranged yet</option></select></label></div></section>
+          <section className="form-section"><div className="form-heading"><span>2</span><div><h2>Your details and buying position</h2><p>{profile?"Prefilled from your reusable Listwise profile.":<>This helps the seller prepare. <Link href="/account">Sign in to reuse your profile.</Link></>}</p></div></div><div className="field-grid"><label>Full name<input name="name" autoComplete="name" defaultValue={profile?.name} required /></label><label>Email address<input name="email" type="email" autoComplete="email" defaultValue={profile?.email} readOnly={Boolean(profile)} required /></label><label>Phone number<input name="phone" type="tel" autoComplete="tel" defaultValue={profile?.phone} required /></label><label>Buying position<select name="buyingPosition" required defaultValue={profile?.buying_position||""}><option value="" disabled>Select your position</option><option>First-time buyer</option><option>Property under offer</option><option>Property on the market</option><option>Not yet on the market</option><option>Cash buyer</option></select></label><label>Deposit<select name="depositStatus" required defaultValue={profile?.deposit_status||""}><option value="" disabled>Select deposit status</option><option>Funds available</option><option>Gifted deposit confirmed</option><option>Still building deposit</option></select></label><label>Mortgage<select name="mortgageStatus" required defaultValue={profile?.mortgage_status||""}><option value="" disabled>Select mortgage status</option><option>Agreement in principle</option><option>Cash purchase</option><option>Speaking to a broker</option><option>Not arranged yet</option></select></label></div></section>
 
           <section className="form-section"><div className="form-heading"><span>3</span><div><h2>Document readiness</h2><p>Add what you have now. Your selections are recorded; secure file storage will be enabled separately.</p></div></div><div className="document-upload-list">{requestedDocuments.map((document) => { const file = files[document.kind]; return <label key={document.kind} className={file ? "uploaded" : ""}><input type="file" accept=".pdf,.png,.jpg,.jpeg" onChange={(event) => chooseFile(document.kind, event)} /><span className="upload-icon">{file ? <FileCheck2 /> : <UploadCloud />}</span><span><b>{document.label}{!document.required && <small>Optional</small>}</b><small>{file ? file.name : document.hint}</small></span><em>{file ? "Added" : "Choose file"}</em></label>; })}</div><p className="upload-privacy"><ShieldCheck />For this first release, Listwise stores the document names and checklist status in Neon. File contents remain on your device until secure object storage is connected.</p></section>
 

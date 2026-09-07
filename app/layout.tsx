@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "./fixes.css";
+import "./market.css";
 
 export const metadata: Metadata = {
   title: "Listwise — Your home, listed brilliantly",

@@ -33,7 +33,7 @@ export default function HomesPage() {
   return <main className="homes-page">
     <header className="catalogue-header">
       <Link className="catalogue-brand" href="/"><span>L</span>listwise.</Link>
-      <nav><Link className="active" href="/homes">Buy</Link><Link href="/">Sell</Link><Link href="/apply">Applications</Link></nav>
+      <nav><Link className="active" href="/homes">Buy</Link><Link href="/">Sell</Link><Link href="/portal">My workspace</Link></nav>
       <button className="saved-button" aria-label="Saved homes"><Heart/> <span>Saved</span></button>
     </header>
 
